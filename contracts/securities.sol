@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 // Remove "abstract" and build the constructor
-contract SecurityToken is ERC20, Ownable {
+contract SecurityToken is ERC20{
+    address owner;
 
     string public offeringName;
     string public offeringType;
@@ -14,7 +14,7 @@ contract SecurityToken is ERC20, Ownable {
     uint256 public issuedShares;
     address public custodian;
 
-    event CheckBalance(string text, uint amount);
+    event CheckBalance(uint amount);
 
     
     constructor(
@@ -31,11 +31,17 @@ contract SecurityToken is ERC20, Ownable {
         totalShares = _totalShares;
         sharePrice = _sharePrice;
         custodian = _custodian;
+        owner = msg.sender;
     }
 
 
     // Implement functions for issuing and redeeming different types of securities
     // Example: issueStocks, redeemStocks, issueBonds, redeemBonds, etc.
+
+    modifier onlyOwner() {
+        require(owner == msg.sender, "Only owner can call this function");
+        _;
+    }
 
     // Function to issue new shares
     function issueShares(address investor, uint256 amount) external onlyOwner {
@@ -52,16 +58,14 @@ contract SecurityToken is ERC20, Ownable {
     }
 
     // Function to transfer ownership of the contract
-    function transferOwnership(address newOwner) public override onlyOwner {
+    function transferOwnership(address newOwner) public onlyOwner {
         require(newOwner != address(0), "New owner cannot be the zero address");
-        super.transferOwnership(newOwner);
+        owner = newOwner;
     }
     
     function getBalance(address user_account) external returns (uint){
-    
-       string memory data = "User Balance is : ";
        uint user_bal = user_account.balance;
-       emit CheckBalance(data, user_bal );
+       emit CheckBalance(user_bal);
        return (user_bal);
 
     }
